@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#e74c3c">
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/128/9091/9091686.png">
+    <title>Score STRATHEGE - Final</title>
+    <style>
+        :root { --primary: #2c3e50; --accent: #e74c3c; --bg: #f4f7f6; }
+        body { font-family: sans-serif; background: var(--bg); padding: 15px; color: var(--primary); }
+        .container { max-width: 650px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: var(--accent); font-size: 1.5em; margin-bottom: 5px; }
+        .subtitle { text-align: center; font-size: 0.9em; color: #7f8c8d; margin-bottom: 30px; }
+        section { margin-bottom: 20px; padding: 10px; border: 1px solid #eee; border-radius: 8px; }
+        h2 { font-size: 1em; border-bottom: 2px solid var(--accent); padding-bottom: 5px; margin-bottom: 10px; }
+        .item-group { display: flex; flex-direction: column; gap: 8px; }
+        .checkbox-item { display: flex; align-items: center; font-size: 0.85em; cursor: pointer; }
+        input[type="checkbox"], input[type="radio"] { margin-right: 10px; transform: scale(1.1); cursor: pointer; }
+        select { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; font-size: 0.9em; border: 1px solid #ccc; }
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        button { flex: 2; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        button.reset { flex: 1; background: #95a5a6; }
+        #result { margin-top: 20px; padding: 15px; border-radius: 8px; display: none; text-align: center; }
+        .score-val { font-size: 1.6em; font-weight: bold; }
+        .aspirin-alert { color: #d35400; font-weight: bold; margin-top: 10px; border: 2px solid #d35400; padding: 8px; border-radius: 4px; background: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Score STRATHEGE</h1>
+    <p class="subtitle">Thromboprophylaxie et Grossesse<br>(D'après Chauleur C. et al. 2013)</p>
+    
+    <form id="scoreForm">
+        <section>
+            <h2>1. Antécédents Personnels de MTEV</h2>
+            <select id="atcd_perso" onchange="toggleAdjustments()">
+                <option value="0">Aucun personnel (0)</option>
+                <option value="12">Multiples / Anticoag. long cours (12)</option>
+                <option value="5">Unique : EP ou TVP Proximale (5)</option>
+                <option value="2">Unique : TVP Distale (2)</option>
+            </select>
+            <div id="adjustments" style="display:none; margin-top:10px; padding:10px; background:#fef4f4; border-radius: 5px;">
+                <label class="checkbox-item"><input type="checkbox" id="declenchant"> Facteur déclenchant (-2)</label>
+                <label class="checkbox-item"><input type="checkbox" id="hormonal"> Contexte hormonal (+1)</label>
+            </div>
+        </section>
+
+        <section>
+            <h2>2. Antécédents Familiaux de MTEV (1er degré)</h2>
+            <div class="item-group">
+                <label class="checkbox-item"><input type="radio" name="atcd_fam" value="2"> Proximale idiopathique ou multiple (+2)</label>
+                <label class="checkbox-item"><input type="radio" name="atcd_fam" value="0"> Distale ou provoquée ou après 60 ans (+0)</label>
+            </div>
+        </section>
+
+        <section>
+            <h2>3. Thrombophilie</h2>
+            <div class="item-group">
+                <label class="checkbox-item"><input type="checkbox" class="thrombo" value="10"> Déficit AT (+10)</label>
+                <label class="checkbox-item"><input type="checkbox" class="thrombo" value="4"> Déficit Prot C ou S (+4)</label>
+                <label class="checkbox-item"><input type="checkbox" class="thrombo" value="3"> Facteur V ou II Hétérozygote (+3)</label>
+                <label class="checkbox-item"><input type="checkbox" class="thrombo" value="5"> Facteur V ou II Homozygote (+5)</label>
+                <label class="checkbox-item"><input type="checkbox" class="thrombo" value="4"> Double Hétérozygote (+4)</label>
+                <label class="checkbox-item"><input type="checkbox" class="thrombo" id="sapl_obs" value="9"> SAPL +/- Patho foeto-placentaire (+9)</label>
+                <label class="checkbox-item"><input type="checkbox" class="thrombo" id="sapl_thrombo" value="12"> SAPL + Thrombose (+12)</label>
+            </div>
+        </section>
+
+        <section>
+            <h2>4. Complications placentaires</h2>
+            <div class="item-group">
+                <label class="checkbox-item"><input type="checkbox" class="placenta" value="2"> Mort fœtale in utero (+2)</label>
+                <label class="checkbox-item"><input type="checkbox" id="fcs_rec"> FCS multiples (≥3) ou 1 perte ≥9 sem (+0)</label>
+                <label class="checkbox-item"><input type="checkbox" class="placenta" value="1"> Prééclampsie / HELLP / HRP (+1)</label>
+                <label class="checkbox-item"><input type="checkbox" class="placenta" value="2"> RCIU (+2)</label>
+            </div>
+        </section>
+
+        <section>
+            <h2>5. Antécédents Artériels</h2>
+            <label class="checkbox-item"><input type="checkbox" id="arteriel"> AVC, Vascularite, Embole, Athérome</label>
+        </section>
+    </form>
+
+    <div class="btn-group">
+        <button onclick="calculer()">CALCULER LE SCORE</button>
+        <button class="reset" onclick="resetForm()">RESET</button>
+    </div>
+
+    <div id="result">
+        <div id="scoreDisplay" class="score-val"></div>
+        <div id="conduite" style="margin-top:10px; font-weight: bold; font-size: 1.1em;"></div>
+        <div id="aspirinDisplay" class="aspirin-alert" style="display:none;">💊 ASPIRINE</div>
+    </div>
+</div>
+
+<script>
+    function toggleAdjustments() {
+        const val = document.getElementById('atcd_perso').value;
+        document.getElementById('adjustments').style.display = (val == "5" || val == "2") ? "block" : "none";
+    }
+
+    function resetForm() { 
+        // Réinitialise tous les champs du formulaire
+        document.getElementById('scoreForm').reset();
+        
+        // Cache les panneaux de résultats et d'ajustements
+        document.getElementById('adjustments').style.display = "none";
+        document.getElementById('result').style.display = "none";
+        document.getElementById('aspirinDisplay').style.display = "none";
+        
+        // Remonte en haut de la page
+        window.scrollTo(0, 0);
+    }
+
+    function calculer() {
+        let score = parseInt(document.getElementById('atcd_perso').value);
+        let potentialAsp = false;
+
+        // 1. Perso
+        if (document.getElementById('adjustments').style.display === "block") {
+            if (document.getElementById('declenchant').checked) score -= 2;
+            if (document.getElementById('hormonal').checked) score += 1;
+        }
+
+        // 2. Familial
+        const famCheck = document.querySelector('input[name="atcd_fam"]:checked');
+        if (famCheck) {
+            score += parseInt(famCheck.value);
+        }
+
+        // 3. Thrombophilies
+        document.querySelectorAll('.thrombo').forEach(t => { 
+            if (t.checked) {
+                score += parseInt(t.value);
+                if (t.id === 'sapl_obs') potentialAsp = true;
+            }
+        });
+
+        // 4. Placentaires
+        document.querySelectorAll('.placenta').forEach(p => { 
+            if (p.checked) { score += parseInt(p.value); potentialAsp = true; } 
+        });
+        if (document.getElementById('fcs_rec').checked) potentialAsp = true;
+
+        // 5. Artériel
+        if (document.getElementById('arteriel').checked) potentialAsp = true;
+
+        // Affichage
+        const resDiv = document.getElementById('result');
+        resDiv.style.display = "block";
+        document.getElementById('scoreDisplay').innerText = "Score Total : " + score;
+
+        // Verrou Aspirine (Score < 12)
+        document.getElementById('aspirinDisplay').style.display = (potentialAsp && score < 12) ? "block" : "none";
+
+        let cat = "";
+        if (score >= 12) { cat = "🔴 TRAITEMENT CURATIF (Toute la grossesse + 6 sem PP)"; resDiv.style.background = "#fdcbce"; }
+        else if (score >= 5) { cat = "🟠 TRAITEMENT PRÉVENTIF (Toute la grossesse + 6 sem PP)"; resDiv.style.background = "#ffe0b2"; }
+        else if (score == 4) { cat = "🟡 TRAITEMENT PRÉVENTIF (3ème Trimestre + 6 sem PP)"; resDiv.style.background = "#fff9c4"; }
+        else if (score >= 1) { cat = "🔵 TRAITEMENT PRÉVENTIF (6 sem PP uniquement)"; resDiv.style.background = "#e3f2fd"; }
+        else { cat = "🟢 Pas de prophylaxie systématique"; resDiv.style.background = "#e8f5e9"; }
+        
+        document.getElementById('conduite').innerText = cat;
+        
+        // Scroll fluide vers le résultat
+        resDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+</body>
+</html>
